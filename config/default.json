@@ -1,0 +1,18 @@
+{
+  "enabled_checks": ["bug", "security", "style"],
+  "severity_threshold": "low",
+  "languages": ["python", "javascript", "java"],
+  "style_guide": "default",
+  "custom_rules": {},
+  "educational_level": "intermediate",
+  "include_examples": true,
+  "include_resources": true,
+  "use_ai": false,
+  "ai_provider": "openai",
+  "ai_model": "gpt-4",
+  "max_file_size": 1000000,
+  "parallel_processing": true,
+  "max_workers": 4,
+  "output_format": "json",
+  "verbose": false
+}

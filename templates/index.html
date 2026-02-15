@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Review Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        select, button {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select {
+            background: white;
+            color: #333;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .results {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .finding {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .finding.critical {
+            border-left-color: #dc3545;
+        }
+        
+        .finding.high {
+            border-left-color: #fd7e14;
+        }
+        
+        .finding.medium {
+            border-left-color: #ffc107;
+        }
+        
+        .finding.low {
+            border-left-color: #28a745;
+        }
+        
+        .finding-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .severity-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .severity-badge.critical {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .severity-badge.high {
+            background: #fd7e14;
+            color: white;
+        }
+        
+        .severity-badge.medium {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .severity-badge.low {
+            background: #28a745;
+            color: white;
+        }
+        
+        .code-snippet {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-findings {
+            text-align: center;
+            padding: 40px;
+            color: #28a745;
+            font-size: 1.2em;
+        }
+        
+        .error {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Code Review Assistant</h1>
+            <p>Intelligent code analysis powered by Google Gemini AI</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h2>📝 Code Input</h2>
+                <div class="controls">
+                    <select id="language">
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="java">Java</option>
+                    </select>
+                    <button id="analyzeBtn" onclick="analyzeCode()">🔍 Analyze Code</button>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="useAI" checked>
+                        <span>✨ Use AI Enhancement</span>
+                    </label>
+                </div>
+                <textarea id="codeInput" placeholder="Paste your code here...">def process_data():
+    while True:
+        print("Processing...")
+    return "Done"</textarea>
+            </div>
+            
+            <div class="panel">
+                <h2>📊 Analysis Results</h2>
+                <div id="results">
+                    <div class="no-findings">
+                        👈 Enter code and click "Analyze Code" to get started
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function analyzeCode() {
+            const code = document.getElementById('codeInput').value;
+            const language = document.getElementById('language').value;
+            const useAI = document.getElementById('useAI').checked;
+            const resultsDiv = document.getElementById('results');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            
+            if (!code.trim()) {
+                resultsDiv.innerHTML = '<div class="error">Please enter some code to analyze</div>';
+                return;
+            }
+            
+            analyzeBtn.disabled = true;
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing your code...</p></div>';
+            
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code, language, use_ai: useAI })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data.result, data.ai_enabled);
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                analyzeBtn.disabled = false;
+            }
+        }
+        
+        function displayResults(result, aiEnabled) {
+            const resultsDiv = document.getElementById('results');
+            const findings = result.findings;
+            const metrics = result.metrics;
+            
+            let html = '';
+            
+            // Metrics
+            html += '<div class="metrics">';
+            html += `<div class="metric-card"><div class="metric-value">${metrics.total_issues}</div><div class="metric-label">Total Issues</div></div>`;
+            html += `<div class="metric-card"><div class="metric-value">${metrics.code_quality_score.toFixed(0)}</div><div class="metric-label">Quality Score</div></div>`;
+            html += `<div class="metric-card"><div class="metric-value">${metrics.critical_issues}</div><div class="metric-label">Critical</div></div>`;
+            html += `<div class="metric-card"><div class="metric-value">${metrics.high_issues}</div><div class="metric-label">High</div></div>`;
+            html += '</div>';
+            
+            if (aiEnabled) {
+                html += '<div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">✨ AI Enhancement Active</div>';
+            }
+            
+            // Findings
+            if (findings.length === 0) {
+                html += '<div class="no-findings">✅ No issues found! Your code looks good.</div>';
+            } else {
+                html += '<div class="results">';
+                findings.forEach(finding => {
+                    html += `
+                        <div class="finding ${finding.severity}">
+                            <div class="finding-header">
+                                <strong>Line ${finding.line_number}: ${finding.message}</strong>
+                                <span class="severity-badge ${finding.severity}">${finding.severity}</span>
+                            </div>
+                            ${finding.code_snippet ? `<div class="code-snippet">${escapeHtml(finding.code_snippet)}</div>` : ''}
+                            ${finding.suggestion ? `<p><strong>💡 Suggestion:</strong> ${finding.suggestion}</p>` : ''}
+                            ${finding.explanation ? `<p><strong>📚 Explanation:</strong> ${finding.explanation}</p>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
