@@ -51,7 +51,7 @@ C:\Users\pattn\AppData\Local\Programs\Python\Python312\python.exe app.py
 ## Environment Variables (.env)
 
 ```
-GEMINI_API_KEY=AIzaSyCobziiJ5t8a_cjZTNlfks5hfg8C_iBEHY
+GEMINI_API_KEY
 FLASK_ENV=development
 PORT=5000
 ```
@@ -67,3 +67,4 @@ Press `CTRL+C` in the terminal where the server is running.
 **Last Updated**: February 13, 2026
 **Python Version**: 3.12
 **Framework**: Flask 3.1.1
+
